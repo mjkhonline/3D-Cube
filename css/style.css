@@ -1,0 +1,62 @@
+body {
+    margin: 0;
+    background-color: #000;
+    user-select: none;
+}
+
+canvas {
+    width: 100%;
+    height: 100%
+}
+
+#text_info {
+    position: fixed;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    display: block;
+    color: whitesmoke;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+h1, h2, h3, h4 {
+    margin: 5px;
+}
+
+h5{
+    color: yellow;
+}
+
+#help {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    z-index: 101;
+    display: block;
+    color: white;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+#help ul li {
+    float: left;
+    margin: 2px 16px;
+    color: yellow;
+}
+
+#help ul li:first-child{
+    margin-left: 10%;
+}
+
+#floating_info {
+    position: fixed;
+    bottom: 160px;
+    width: 100%;
+    text-align: center;
+    z-index: 102;
+    display: block;
+    color: lightslategrey;
+    font-family: "Segoe UI", Arial, sans-serif;
+
+}

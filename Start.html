@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="./js/three.js" type="text/javascript"></script>
+    <script src="./js/jquery.min.js" type="text/javascript"></script>
+    <title>3D cube</title>
+</head>
+<body>
+<div id="text_info">
+    <h1>Computer Graphic Project</h1>
+    <h4>By Mohammad Javad Khademian</h4>
+    <h3>92213017</h3>
+    <h4>Shiraz University of Technology</h4>
+</div>
+<div id="floating_info">
+    <p></p>
+</div>
+<div id="help">
+    <h4>Help</h4>
+    <ul>
+        <li>Use Arrow Keys for Rotation</li>
+        <li>Use Mouse Wheel or +/- key to Zoom in/out</li>
+        <li>Use Drag (mouse key down + move) to rotate</li>
+        <li>Use Enter to reset</li>
+    </ul>
+</div>
+</body>
+<script>
+//global variables
+var scene, camera, renderer;
+var geometry, material, cube;
+
+var zoom_level = 0;
+var starting_rotation = 0.001;
+var x_rotate = starting_rotation;
+var y_rotate = starting_rotation;
+var z_rotate = starting_rotation;
+
+init();
+animate();
+
+//preparing the scene and creating our cube
+function init() {
+
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.z = 500;
+
+    geometry = new THREE.BoxGeometry(200, 200, 200);
+    material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: false, vertexColors: THREE.FaceColors});
+    colorize_cube(geometry);
+    cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth - 5, window.innerHeight - 5);
+    renderer.setClearColor(0x000000, 1);
+    document.body.appendChild(renderer.domElement);
+}
+
+//paint parallel faces as the same color randomly
+function colorize_cube(geometry) {
+    var surface_color_a = new THREE.Color(Math.random() * 0xffffff);
+    var surface_color_b = new THREE.Color(Math.random() * 0xffffff);
+    var surface_color_c = new THREE.Color(Math.random() * 0xffffff);
+    var colors = [surface_color_a, surface_color_b, surface_color_c];
+
+    for (i = 0; i < 3; i++) {
+        geometry.faces[4 * i].color = colors[i];
+        geometry.faces[4 * i + 1].color = colors[i];
+        geometry.faces[4 * i + 2].color = colors[i];
+        geometry.faces[4 * i + 3].color = colors[i];
+    }
+}
+
+//our loop
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    rotate();
+
+    if (zoom_level !== 0)
+        zoom();
+    renderer.render(scene, camera);
+
+}
+
+//change camera view (zoom in/out)
+function zoom() {
+    var current_camera_pos = camera.position.z;
+    //limit zooming level
+    if (current_camera_pos < 250) {
+        zoom_level = 0;
+        camera.position.z = 250;
+        return;
+    }
+    if (current_camera_pos > 5000) {
+        zoom_level = 0;
+        camera.position.z = 5000;
+        return;
+    }
+
+    camera.position.z += zoom_level;
+    if (zoom_level > 0)
+        zoom_level--;
+    else
+        zoom_level++;
+}
+
+//rotate cube
+function rotate() {
+    /*camera.rotateX(x_rotate);
+     camera.rotateY(y_rotate);
+     camera.rotateZ(z_rotate);*/
+    cube.rotation.x += x_rotate;
+    cube.rotation.y += y_rotate;
+    cube.rotation.z += z_rotate;
+}
+
+//handling events using jQuery
+jQuery(Document).ready(function ($) {
+    var body = $('body');
+    var message_box = $('#floating_info').children('p');
+    message_box.hide();
+    body.on("contextmenu", function (e) {
+        return false;
+    });
+
+    function show_msg(text) {
+        message_box.text(text);
+        message_box.show();
+    }
+
+    //resize renderer on browser resizing
+    $(window).resize(function () {
+        renderer.setSize(window.innerWidth - 5, window.innerHeight - 5);
+      //camera.aspect(window.innerWidth / window.innerHeight);
+    });
+
+    //change camera view (zoom in/out) by mouse wheel (scroll)
+    body.bind('mousewheel', function (e) {
+        zoom_level = -e.originalEvent.wheelDelta / 10;
+    });
+
+    //zoom in/out ,reset using keyboard
+    body.keypress(function (e) {
+        if (e.keyCode === 43 || e.keyCode === 61)//add key
+            zoom_level = -10;
+        else if (e.keyCode === 45)//subset key
+            zoom_level = 10;
+        else if (e.keyCode === 13) {
+            cube.rotation.x = 0.5;
+            cube.rotation.y = 0.7;
+            cube.rotation.z = 0;
+            camera.position.z = 500;
+        }
+    });
+
+    //rotate cube based on key press down
+    body.keydown(function (e) {
+        var speed = 0.05;
+        if (e.keyCode === 37) {//left
+            y_rotate = -speed;
+        } else if (e.keyCode === 38) {//up
+            x_rotate = -speed;
+        }
+        else if (e.keyCode === 39) {//right
+            y_rotate = speed;
+        } else if (e.keyCode === 40) {//down
+            x_rotate = speed;
+        }
+    });
+
+    //disable rotation after key up
+    body.keyup(function () {
+        x_rotate = 0;
+        y_rotate = 0;
+        z_rotate = 0;
+    });
+
+    //we store starting point coordination to calculate degree of rotation based on mouse movement
+    var start_cor_x = 0;
+    var start_cor_y = 0;
+    var click_down = false;
+    body.mousedown(function (e) {
+        start_cor_x = e.screenX;
+        start_cor_y = e.screenY;
+        click_down = true;
+    });
+
+    //rotate cube based on mouse down movement
+    body.mousemove(function (e) {
+        if (click_down) {
+            show_msg('Move your mouse');
+            y_rotate = (e.screenX - start_cor_x) / 6000;
+            x_rotate = (e.screenY - start_cor_y) / 6000;
+        }
+
+    });
+
+    //disable rotation after mouse up
+    body.mouseup(function () {
+        x_rotate = starting_rotation;
+        y_rotate = starting_rotation;
+        z_rotate = starting_rotation;
+        click_down = false;
+        message_box.hide();
+    });
+
+});
+
+</script>
+</html>
